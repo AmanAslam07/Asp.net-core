@@ -7,6 +7,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Mail;
+using System.Net;
+using AutoMapper;
 
 namespace Web_Api.Service
 {
@@ -18,13 +21,15 @@ namespace Web_Api.Service
         private readonly UserManager<Employee> userManager;
         private readonly SignInManager<Employee> signInManager;
         private readonly RoleManager<IdentityRole> roleManager;
+        private readonly IMapper mapper;
 
         public EmployeeService(EmployeeDbContext employeeDbContext,
            IConfiguration configuration,
            IHttpContextAccessor httpContextAccessor,
             UserManager<Employee> userManager,
             SignInManager<Employee> signInManager,
-            RoleManager<IdentityRole> roleManager)
+            RoleManager<IdentityRole> roleManager,
+            IMapper mapper)
        {
             this.employeeDbContext = employeeDbContext;
             this.configuration = configuration;
@@ -32,27 +37,47 @@ namespace Web_Api.Service
             this.userManager = userManager;
             this.signInManager = signInManager;
             this.roleManager = roleManager;
+            this.mapper = mapper;
         }
 
         public async Task<List<Employee>> GetAllEmployeesAsync()
         {
-            var records = await employeeDbContext.Employees.ToListAsync();
-            return records;
+            //var records = await employeeDbContext.Employees.ToListAsync();
+            //var records = await employeeDbContext.Employees.Select(x => new Employee()
+            //{
+            //    IdEmployee = x.IdEmployee,
+            //    Name = x.Name,
+            //    Address = x.Address,
+            //    EmailAddress = x.Email,
+            //    Password = x.Password,
+            //}).ToListAsync();
+            //return records;
+            var emp=await employeeDbContext.Employees.ToListAsync();
+            return mapper.Map<List<Employee>>(emp);
         }
         public async Task<Employee> GetEmployeeByIdAsync(int id)
         {
-            var record = await employeeDbContext.Employees.FirstOrDefaultAsync(x => x.IdEmployee == id);
+            var record = await employeeDbContext.Employees.FirstOrDefaultAsync(x => x.IdEmployee == id);//.Select(x => new Employee()
             return record;
+            //{
+            //    IdEmployee = x.IdEmployee;
+            //    Name = x.Name,
+            //    Address = x.Address,
+            //    EmailAddress = x.Email,
+            //    Password = x.Password,
+            //}).ToListAsync();
+
         }
         public async Task<string> RegisterEmployeeAsync(Employee employee)
         {
-            var Employee = new Employee
-            {
-                Name = employee.Name,
-                Address = employee.Address,
-                EmailAddress = employee.EmailAddress,
-                Password = employee.Password
-            };
+            //var Employee = new Employee
+            //{
+            //    Name = employee.Name,
+            //    Address = employee.Address,
+            //    EmailAddress = employee.EmailAddress,
+            //    Password = employee.Password
+            //};
+            var Employee=mapper.Map<Employee>(employee);
             if (!await roleManager.RoleExistsAsync(Role.Admin))
             {
                 await roleManager.CreateAsync(new IdentityRole(Role.Admin));
@@ -78,15 +103,15 @@ namespace Web_Api.Service
            }
             else
            {
-               var Emp = new Employee
-                {
-                    Name = employee.Name,
-                    Address = employee.Address,
-                    EmailAddress = employee.EmailAddress,
-                    Password = employee.Password
-               };
-                
-               
+               //var Emp = new Employee
+               // {
+               //     Name = employee.Name,
+               //     Address = employee.Address,
+               //     EmailAddress = employee.EmailAddress,
+               //     Password = employee.Password
+               //};
+               var Emp=mapper.Map<Employee>(employee);
+                             
                 if (!await roleManager.RoleExistsAsync(Role.Admin))
                 {
                     await roleManager.CreateAsync(new IdentityRole(Role.Admin));
@@ -107,18 +132,23 @@ namespace Web_Api.Service
         public async Task<string> UpdateEmployeeAsync(Employee employee,int id)
         {
 
-            var emp = await employeeDbContext.Employees.FirstOrDefaultAsync(e=>e.IdEmployee==id);
+            // var emp = await employeeDbContext.Employees.FirstOrDefaultAsync(e=>e.IdEmployee==id);
+            var emp = await GetEmployeeByIdAsync(id);
             if (emp != null)
             {
-                
+
                 emp.Name = employee.Name;
                 emp.Address = employee.Address;
                 emp.EmailAddress = employee.EmailAddress;
                 emp.Password = employee.Password;
-                
-               
-               // await userManager.UpdateAsync(emp);
-                
+            
+                 await userManager.UpdateAsync(emp);
+                //var emp1=mapper.Map<Employee>(employee);
+                //var entry=employeeDbContext.Entry(emp1);
+                //entry.State=EntityState.Modified;
+                //entry.Property(e => e.IdEmployee).IsModified = false;
+                //employeeDbContext.Employees.Update(emp1);
+                //mapper.Map(employee,emp);
                 await employeeDbContext.SaveChangesAsync(true);
                 return ("Employee Updated");
             }
@@ -134,17 +164,13 @@ namespace Web_Api.Service
             employeeDbContext.Employees.Remove(record);
             employeeDbContext.SaveChanges();
             return "Employee Deleted";
-
         }
         public async Task<string> EmployeeLoginAsync(AuthenticateEmployee authenticateEmployee)
         {
-
-            //var result = await signInManager.PasswordSignInAsync(authenticateEmployee.EmailAddress, authenticateEmployee.Password, false, false);
-            var emp=await employeeDbContext.Employees.FirstOrDefaultAsync(x=>x.EmailAddress==authenticateEmployee.EmailAddress);                                      
-            
             //var emp = await userManager.FindByEmaiAsync(authenticateEmployee.EmailAddress);
-
-            if (emp != null )//&& await userManager.CheckPasswordAsync(emp, authenticateEmployee.Password))
+            //var result = await signInManager.PasswordSignInAsync(authenticateEmployee.EmailAddress, authenticateEmployee.Password, false, false);
+            var emp =await employeeDbContext.Employees.FirstOrDefaultAsync(x=>x.EmailAddress==authenticateEmployee.EmailAddress);                                                          
+            if (emp != null )
             {
                 var EmployeeRole = await userManager.GetRolesAsync(emp);
                 var authClaims = new List<Claim>
@@ -177,22 +203,20 @@ namespace Web_Api.Service
         {
             var result = string.Empty;
              if( httpContextAccessor!=null)
-            {
+             {
                 result= httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.Email) ?? string.Empty;
-            }
+             }
            
             var emp=await employeeDbContext.Employees.SingleOrDefaultAsync(e=>e.EmailAddress==result);
-
-                return new Employee
-                {
-                    IdEmployee=emp.IdEmployee,
-                    Name = emp.Name,
-                    Address = emp.Address,
-                    EmailAddress = emp.EmailAddress,
-                    Password = emp.Password,
-                };
-            
-            
+             return  mapper.Map<Employee>(emp);
+                //return new Employee
+                //{
+                //    IdEmployee=emp.IdEmployee,
+                //    Name = emp.Name,
+                //    Address = emp.Address,
+                //    EmailAddress = emp.EmailAddress,
+                //    Password = emp.Password,
+                //};  
         }
     }
 }

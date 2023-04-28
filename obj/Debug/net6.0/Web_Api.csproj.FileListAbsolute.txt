@@ -91,3 +91,5 @@ C:\Users\htadmin\source\repos\WEB-API1\Web_Api\obj\Debug\net6.0\refint\Web_Api.d
 C:\Users\htadmin\source\repos\WEB-API1\Web_Api\obj\Debug\net6.0\Web_Api.pdb
 C:\Users\htadmin\source\repos\WEB-API1\Web_Api\obj\Debug\net6.0\Web_Api.genruntimeconfig.cache
 C:\Users\htadmin\source\repos\WEB-API1\Web_Api\obj\Debug\net6.0\ref\Web_Api.dll
+C:\Users\htadmin\source\repos\WEB-API1\Web_Api\bin\Debug\net6.0\AutoMapper.dll
+C:\Users\htadmin\source\repos\WEB-API1\Web_Api\bin\Debug\net6.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll

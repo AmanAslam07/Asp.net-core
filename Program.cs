@@ -5,10 +5,12 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Web_Api.Models;
 using Web_Api.Service;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 // Add services to the container.
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddDbContext<EmployeeDbContext>(x => x.UseSqlServer(builder.Configuration.GetConnectionString("DbConnect")));
 builder.Services.AddIdentity<Employee,IdentityRole>()
     .AddEntityFrameworkStores<EmployeeDbContext>();

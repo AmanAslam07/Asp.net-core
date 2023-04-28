@@ -5,7 +5,7 @@ namespace Web_Api.Service
 {
     public interface IEmployeeService
     {
-         Task<List<Employee>> GetAllEmployeesAsync();
+        Task<List<Employee>> GetAllEmployeesAsync();
         Task<Employee> GetEmployeeByIdAsync(int id);
         Task<string> RegisterEmployeeAsync(Employee employee);
         Task<string> UpdateEmployeeAsync(Employee employee, int id);

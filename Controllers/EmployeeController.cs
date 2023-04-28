@@ -32,15 +32,16 @@ namespace Web_Api.Controllers
             var employee = await employeeService.GetEmployeeByIdAsync(id);
             return Ok(employee);
         }
-        [Authorize(Roles = Role.Admin)]
+        
         [HttpPost]
         [Route("api/Employee/RegisterEmployee")]
         public async Task<string> RegisterEmployee([FromBody]Employee employee)
         {
             return await employeeService.RegisterEmployeeAsync(employee);
         }
-        [Authorize(Roles = Role.Admin)]
+       
         [HttpPost]
+        [Route("api/Employee/RegisterAdmin")]
         public async Task<string> RegisterAdmin([FromBody]Employee employee)
         {
             return await employeeService.RegisterAdminAsync(employee);
